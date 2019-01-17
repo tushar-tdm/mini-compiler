@@ -1,4 +1,7 @@
 %{
+	#include<stdio.h>
+	#include<stdlib.h>
+	int cmnt_strt=0;
 %}
 
 identifier (_|[a-zA-Z])([a-zA-Z0-9_]){0,31}
@@ -7,6 +10,12 @@ ws  [ \t\r\f\v]+
 
 %%
 
+"#define" {printf("\nLine_no: %d\t%sThis is defintion for a variable \n",yylineno,yytext);}
+"#include"[ ]*"<"[^>\n]*">"[.]*\n {printf("\nLine_no: %d\t%s is a preprocessor directive\n",yylineno,yytext);}
+"#include"[ ]*"\""[^"\n]*"\""[.]*\n {printf("\nLine_no: %d\t%s is a preprocessor directive\n",yylineno,yytext);}
+"#include"[.]*\n {printf("\nLine_no: %d\t%s Invalid preprocessor directive\n",yylineno,yytext);}
+
+
 "/*"                              {cmnt_strt = yylineno; BEGIN CMNT;}
 <CMNT>.|{ws}                      ;
 <CMNT>\n                          {yylineno++;}
@@ -14,14 +23,7 @@ ws  [ \t\r\f\v]+
 <CMNT>"/*"                        {printf("Line_no: %d\t Nested comments are not valid!\n",yylineno);}
 <CMNT><<EOF>>                     {printf("Line_no: %d\tUnterminated comment\n", cmnt_strt); yyterminate();}
 
-#define {printf("\nLine_no: %d\tThis is defintion for a variable %s\n",yylineno,yytext);}
-#.* {printf("\nLine_no: %d\t%s is a preprocessor directive\n",yylineno,yytext);}
-"#include<" {printf("\nLine_no: %d\t%s is a preprocessor directive\n",yylineno,yytext);}
-"#include<<" {printf("\nLine_no: %d\tInvalid preprocessor directive\n",yylineno,yytext);}
-"#include".[ ]*.[<].[ ]+ {printf("\nLine_no: %d\tInvalid preprocessor directive\n");}
-"#include".[\n] {printf("\nLine_no: %d\tInvalid preprocessor directive\n");yylineno++;}
-
-[0-9]+[a-zA-z]+ {printf("\nLine_no: %d\tIllegal identifier\n");}
+[0-9]+[a-zA-z]+ {printf("\nLine_no: %d\tIllegal identifier\n",yylineno);}
 
 \"[^\"\n]*\"     {
 
@@ -65,11 +67,11 @@ main\( {printf("\nLine_no: %d\tMain function:\n\t%s\n",yylineno,yytext);}
 
 [0-9]+ {printf("\nLine_no: %d\t%s is a Integer Constant\n",yylineno,yytext);};
 
-\)(\:)? {printf("\nLine_no: %d\t\t");ECHO;printf("\nLine_no: %d\t");}
+\)(\:)? {printf("\n\t");ECHO;printf("\n");}
 \( ECHO;
-; {printf("\nLine_no: %d\t%s is a semi-colon\n");}
+; {printf("\nLine_no: %d\t%s is a semi-colon\n",yylineno,yytext);}
 
-= {printf("\nLine_no: %d\t\t %s is an assignment operator\n",yylineno,yytext);}
+= {printf("\nLine_no: %d\t %s is an assignment operator\n",yylineno,yytext);}
 \<= |
 \>= |
 \< |
@@ -77,7 +79,7 @@ main\( {printf("\nLine_no: %d\tMain function:\n\t%s\n",yylineno,yytext);}
 \> |
 != { printf("\nLine_no: %d\t\t%s is a relational operator\n",yylineno,yytext);}
 \{  {printf("\nLine_no: %d\t %s Indentation\n",yylineno,yytext);}
-\}  {printf("Indentation %s\n",yylineno,yytext);}
+\}  {printf("\nLine_no: %d\t Indentation %s\n",yylineno,yytext);}
 \+ |
 \* |
 \/ |
